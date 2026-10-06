@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2608966971494096"
+     crossorigin="anonymous"></script>
+    <title>심심풀이 </title>
+    <style>
+        /* 다크/라이트 모드 색상 변수 설정 */
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #1a1a1a;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --hover-shadow: rgba(0, 0, 0, 0.15);
+            --transition-speed: 0.3s;
+        }
+
+        /* 다크 모드 색상 (기본값으로 세팅) */
+        [data-theme="dark"] {
+            --bg-color: #18191a;
+            --text-color: #e4e6eb;
+            --header-bg: #242526;
+            --card-bg: #242526;
+            --hover-shadow: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* 상단 네비게이션 바 */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--header-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        /* 테마 변경 버튼 */
+        .theme-btn {
+            background-color: transparent;
+            border: 2px solid var(--text-color);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .theme-btn:hover {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        /* 메인 게임 그리드 영역 */
+        main {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .game-grid {
+            display: grid;
+            /* 화면 크기에 맞춰 자동으로 열 개수 조절 (최소 너비 200px) */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* 개별 게임 카드 */
+        .game-card {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            text-decoration: none;
+            color: var(--text-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transform: translateY(0);
+            transition: transform 0.2s, box-shadow 0.2s;
+            aspect-ratio: 4 / 3; /* 카드 비율 고정 */
+            position: relative;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px var(--hover-shadow);
+        }
+
+        /* 썸네일 이미지 */
+        .game-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover img {
+            transform: scale(1.05);
+        }
+
+        /* 게임 제목 오버레이 */
+        .game-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 10px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 600px) {
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            header {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark"> <!-- 기본값을 다크 모드로 설정 -->
+
+    <header>
+        <div class="logo">🎮 심심풀이 사이트</div>
+        <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">☀️️ 라이트 모드로 보기</button>
+    </header>
+
+    <main>
+        <div class="game-grid">
+            
+            <!-- 게임 1: 오목 (이전에 만든 파일 연결) -->
+            <a href="오목M.html" class="game-card">
+                <!-- 실제 게임 스크린샷 이미지 경로를 src에 넣어주세요 -->
+                <img src="img/오목.png" alt="오목 썸네일">
+                <div class="game-info">AI 오목 대결</div>
+            </a>
+
+            <!-- 게임 2: 2048 -->
+            <a href="2048.html" class="game-card">
+                <img src="img/2048.png" alt="2048 썸네일">
+                <div class="game-info">2048</div>
+            </a>
+
+            <!-- 게임 3: 반응속도 테스트 -->
+            <a href="반응속도 테스트.html" class="game-card">
+                <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=500&q=80" alt="게임 썸네일">
+                <div class="game-info">반응속도 테스트</div>
+            </a>
+            
+            <!-- 게임 3: 예시 -->
+            <a href="#" class="game-card">
+                <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=500&q=80" alt="게임 썸네일">
+                <div class="game-info">준비 중인 게임...</div>
+            </a>
+            
+            <!-- 필요한 만큼 <a class="game-card"> 덩어리를 복사해서 추가하세요 -->
+
+        </div>
+    </main>
+
+    <script>
+        // 다크/라이트 모드 전환 스크립트
+        function toggleTheme() {
+            const body = document.body;
+            const themeBtn = document.getElementById('themeToggle');
+            const currentTheme = body.getAttribute('data-theme');
+
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme'); // 라이트 모드로 전환
+                themeBtn.innerText = '🌙 다크 모드로 보기';
+            } else {
+                body.setAttribute('data-theme', 'dark'); // 다크 모드로 전환
+                themeBtn.innerText = '☀️ 라이트 모드로 보기';
+            }
+        }
+    </script>
+    <!-- 하단 법적 고지 및 개인정보처리방침 (애드센스 승인용 텍스트 보강) -->
+    <footer style="background-color: #f1f3f5; padding: 40px 20px; margin-top: 60px; border-top: 1px solid #dee2e6; color: #495057; font-size: 14px; line-height: 1.7; font-family: sans-serif;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            
+            <h3><a href="Privacy Policy.html">"개인정보처리방침 (Privacy Policy)"</a></h3>
+            
+            <hr style="border: 0; border-top: 1px solid #ced4da; margin: 30px 0;">
+
+           <h3><a href="Copyright & Disclaimer.html">"저작권 및 면책 조항"</a></h3>
+            <pr>
+            <div style="text-align: center; margin-top: 40px; font-weight: bold; color: #868e96;">
+                &copy; 2026 AlphaSeong. All rights reserved.<br>
+                <span style="font-size: 12px; font-weight: normal;">Contact: alpharoll65@gmail.com</span>
+           </pr>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
