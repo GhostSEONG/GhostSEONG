@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI와 함께하는 오목 대결</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI 오목">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #e9ecef;
+            color: #333;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #212529;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #status-box {
+            background-color: #fff;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .player-turn { color: #111; }
+        .ai-turn { color: #555; }
+        .win-text { color: #e03131; animation: pop 0.5s ease-out forwards; }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .select-btn.active {
+            background-color: #8b4513 !important;
+            color: white !important;
+        }
+        .forbidden-text { color: #f08c00; }
+
+        .board-container {
+            background-color: #dcb35c;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(139, 69, 19, 0.3);
+            border: 3px solid #8b4513;
+            position: relative;
+            max-width: 100%;
+            overflow: auto;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(15, 36px);
+            grid-template-rows: repeat(15, 36px);
+            background-color: transparent;
+        }
+
+        .cell {
+            width: 36px;
+            height: 36px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #5c3a21;
+            z-index: 1;
+        }
+
+        .cell::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background-color: #5c3a21;
+            z-index: 1;
+        }
+
+        .cell[data-col="0"]::before { left: 50%; }
+        .cell[data-col="14"]::before { right: 50%; }
+        .cell[data-row="0"]::after { top: 50%; }
+        .cell[data-row="14"]::after { bottom: 50%; }
+
+        .stone {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            box-shadow: 2px 3px 5px rgba(0,0,0,0.5);
+            opacity: 0;
+            animation: placeStone 0.2s ease-out forwards;
+        }
+
+        @keyframes placeStone {
+            from { opacity: 0; transform: translate(-50%, -60%) scale(1.2); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .black {
+            background-color: #111;
+            background-image: radial-gradient(circle at 10px 10px, #666, #000);
+        }
+
+        .white {
+            background-color: #f8f9fa;
+            background-image: radial-gradient(circle at 10px 10px, #fff, #d3d3d3);
+            border: 1px solid #ccc;
+        }
+        
+        .stone::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255, 0, 0, 0.7);
+            display: none;
+        }
+        .stone.last-move::after { display: block; }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #2b8a3e;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:active { transform: translateY(2px); }
+        
+        @media (max-width: 600px) {
+            .board {
+                grid-template-columns: repeat(15, 24px);
+                grid-template-rows: repeat(15, 24px);
+            }
+            .cell { width: 24px; height: 24px; }
+            .stone { width: 20px; height: 20px; }
+            h1 { font-size: 1.4rem; }
+            #status-box { font-size: 0.95rem; padding: 6px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>⚔️ 오목 ⚔️</h1>
+        <div class="selection-box" style="margin-bottom: 10px; display: flex; gap: 10px; justify-content: center; align-items: center;">
+            <span style="font-size: 0.95rem; font-weight: bold;">내 돌:</span>
+            <button id="btn-black" class="select-btn active" onclick="setPlayerColor(1)" style="padding: 6px 14px; font-size: 0.9rem; font-weight: bold; border: 2px solid #8b4513; border-radius: 20px; cursor: pointer; background-color: #8b4513; color: white;">흑돌 (선공)</button>
+            <button id="btn-white" class="select-btn" onclick="setPlayerColor(2)" style="padding: 6px 14px; font-size: 0.9rem; font-weight: bold; border: 2px solid #8b4513; border-radius: 20px; cursor: pointer; background-color: #fff; color: #333;">백돌 (후공)</button>
+        </div>
+        <div id="status-box" class="player-turn">당신의 차례입니다 (흑돌)</div>
+    </div>
+    
+    <div class="board-container">
+        <div class="board" id="board"></div>
+    </div>
+    
+    <button onclick="initGame()">새 게임 시작</button>
+
+    <script>
+        const BOARD_SIZE = 15;
+        let board = [];
+        const BLACK = 1; 
+        const WHITE = 2;    
+        
+        let humanColor = BLACK; 
+        let aiColor = WHITE;
+
+        let currentPlayer = BLACK; 
+        let gameOver = false;
+        let isAITurn = false;
+        let lastMoveElement = null;
+
+        const boardElement = document.getElementById('board');
+        const statusBox = document.getElementById('status-box');
+
+        function setPlayerColor(color) {
+            if (gameOver || isAITurn) return;
+            humanColor = color;
+            aiColor = (color === BLACK) ? WHITE : BLACK;
+
+            document.getElementById('btn-black').classList.toggle('active', color === BLACK);
+            document.getElementById('btn-white').classList.toggle('active', color === WHITE);
+            initGame();
+        }
+
+        function initGame() {
+            boardElement.innerHTML = '';
+            board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(0));
+            currentPlayer = BLACK;
+            gameOver = false;
+            lastMoveElement = null;
+            
+            if (humanColor === WHITE) {
+                isAITurn = true;
+                updateStatus("AI(흑돌)가 생각 중입니다...", "ai-turn");
+                setTimeout(makeAIMove, 400);
+            } else {
+                isAITurn = false;
+                updateStatus("당신의 차례입니다 (흑돌)", "player-turn");
+            }
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    
+                    if ((r === 3 || r === 7 || r === 11) && (c === 3 || c === 7 || c === 11)) {
+                        const dot = document.createElement('div');
+                        dot.style.position = 'absolute';
+                        dot.style.top = '50%';
+                        dot.style.left = '50%';
+                        dot.style.width = '5px';
+                        dot.style.height = '5px';
+                        dot.style.backgroundColor = '#5c3a21';
+                        dot.style.borderRadius = '50%';
+                        dot.style.transform = 'translate(-50%, -50%)';
+                        dot.style.zIndex = '1';
+                        cell.appendChild(dot);
+                    }
+
+                    cell.addEventListener('pointerdown', (e) => {
+                        e.preventDefault();
+                        onCellClick(r, c);
+                    });
+
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+        
+        // 3x3(삼삼) 판별 로직
+        function is33Forbidden(r, c, player) {
+            if (player !== BLACK) return false;
+            
+            board[r][c] = BLACK; // 가상 착수
+            
+            // 5목 완성이면 삼삼 금수 예외 (승리하므로 허용)
+            if (checkWin(r, c, BLACK)) {
+                board[r][c] = 0;
+                return false;
+            }
+
+            let openThreeCount = 0;
+            const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+            for (let [dr, dc] of dirs) {
+                if (isOpenThree(r, c, dr, dc, BLACK)) {
+                    openThreeCount++;
+                }
+            }
+
+            board[r][c] = 0; // 원상복구
+            return openThreeCount >= 2;
+        }
+
+        // 모든 경우의 수(띄워진 패턴 포함)를 100% 잡아내는 열린 3목 패턴 매칭 함수
+        function isOpenThree(r, c, dr, dc, player) {
+            let line = "";
+            
+            // 방금 둔 돌을 중심으로 양방향 4칸씩, 총 9칸의 상태를 문자열로 추출
+            for (let i = -4; i <= 4; i++) {
+                let nr = r + dr * i;
+                let nc = c + dc * i;
+                if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) {
+                    line += "2"; // 바둑판 밖은 벽(상대 돌)으로 취급
+                } else {
+                    let cell = board[nr][nc];
+                    if (cell === player) line += "1";       // 내 돌
+                    else if (cell === 0) line += "0";       // 빈칸
+                    else line += "2";                       // 상대 돌
+                }
+            }
+            
+            // 열린 3목이 될 수 있는 4가지 완벽한 패턴 (OOO, OO_O, O_OO)
+            const patterns = ["001110", "011100", "010110", "011010"];
+            for (let p of patterns) {
+                if (line.includes(p)) return true;
+            }
+            
+            return false;
+        }
+
+        function updateStatus(text, className) {
+            statusBox.innerText = text;
+            statusBox.className = className;
+        }
+
+        function onCellClick(r, c) {
+            if (gameOver || isAITurn || board[r][c] !== 0) return;
+            if (currentPlayer !== humanColor) return;
+
+            // 흑돌일 때 3x3 금수 체크
+            if (humanColor === BLACK && is33Forbidden(r, c, BLACK)) {
+                updateStatus("3x3(삼삼) 금수 지역입니다!", "forbidden-text");
+                return;
+            }
+
+            // 유저가 돌을 둠
+            let isEnded = executeMove(r, c, humanColor);
+            if (isEnded) return;
+
+            // 턴을 AI에게 넘김
+            currentPlayer = aiColor;
+            isAITurn = true;
+            updateStatus("AI가 생각 중입니다...", "ai-turn");
+            
+            setTimeout(() => {
+                makeAIMove();
+            }, 300);
+        }
+
+        function executeMove(r, c, player) {
+            placeStone(r, c, player);
+            
+            if (checkWin(r, c, player)) {
+                if (player === humanColor) {
+                    updateStatus("승리! 인간이 AI를 이겼습니다! 🎉", "win-text");
+                } else {
+                    updateStatus("AI의 승리입니다! 분발하세요 🤖", "win-text");
+                }
+                gameOver = true;
+                return true; 
+            }
+
+            if (isBoardFull()) {
+                updateStatus("무승부입니다!", "ai-turn");
+                gameOver = true;
+                return true; 
+            }
+            return false;
+        }
+
+        function placeStone(r, c, player) {
+            board[r][c] = player;
+            
+            const cellIndex = r * BOARD_SIZE + c;
+            const targetCell = boardElement.children[cellIndex];
+            
+            const stone = document.createElement('div');
+            stone.className = `stone ${player === BLACK ? 'black' : 'white'}`;
+            
+            if (lastMoveElement) lastMoveElement.classList.remove('last-move');
+            stone.classList.add('last-move');
+            lastMoveElement = stone;
+
+            targetCell.appendChild(stone);
+        }
+
+        function makeAIMove() {
+            if (gameOver) return;
+
+            let bestScore = -Infinity;
+            let bestMoves = [];
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    if (board[r][c] !== 0) continue;
+
+                    // AI가 흑돌일 때 3x3 금수 자리는 제외
+                    if (aiColor === BLACK && is33Forbidden(r, c, BLACK)) continue;
+
+                    let attackScore = evaluateCell(r, c, aiColor);
+                    let defenseScore = evaluateCell(r, c, humanColor);
+                    let totalScore = attackScore + (defenseScore * 1.2);
+
+                    let centerBias = (7 - Math.abs(7 - r)) + (7 - Math.abs(7 - c));
+                    totalScore += centerBias;
+
+                    if (attackScore >= 1000000) totalScore += 2000000;
+                    if (defenseScore >= 1000000) totalScore += 1000000;
+
+                    if (totalScore > bestScore) {
+                        bestScore = totalScore;
+                        bestMoves = [{r, c}];
+                    } else if (totalScore === bestScore) {
+                        bestMoves.push({r, c});
+                    }
+                }
+            }
+
+            if (bestMoves.length === 0) return;
+
+            const move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            
+            let isEnded = executeMove(move.r, move.c, aiColor);
+            if (isEnded) return;
+
+            currentPlayer = humanColor;
+            isAITurn = false;
+            updateStatus(humanColor === BLACK ? "당신의 차례입니다 (흑돌)" : "당신의 차례입니다 (백돌)", "player-turn");
+        }
+
+        function evaluateCell(r, c, player) {
+            let score = 0;
+            const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+            
+            for (let [dr, dc] of dirs) {
+                for (let offset = -4; offset <= 0; offset++) {
+                    let startR = r + dr * offset;
+                    let startC = c + dc * offset;
+                    
+                    let pStones = 0;
+                    let empty = 0;
+                    let isValidWindow = true;
+                    
+                    for (let i = 0; i < 5; i++) {
+                        let nr = startR + dr * i;
+                        let nc = startC + dc * i;
+                        
+                        if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) {
+                            isValidWindow = false;
+                            break;
+                        }
+                        
+                        let currentCell = (nr === r && nc === c) ? player : board[nr][nc];
+                        
+                        if (currentCell === player) {
+                            pStones++;
+                        } else if (currentCell === 0) {
+                            empty++;
+                        } else {
+                            isValidWindow = false;
+                            break;
+                        }
+                    }
+                    
+                    if (isValidWindow) {
+                        if (pStones === 5) score += 1000000;
+                        else if (pStones === 4) score += 10000;
+                        else if (pStones === 3) score += 1000;
+                        else if (pStones === 2) score += 100;
+                        else if (pStones === 1) score += 10;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function checkWin(r, c, player) {
+            const directions = [ [0, 1], [1, 0], [1, 1], [1, -1] ];
+
+            for (let [dr, dc] of directions) {
+                let count = 1;
+                
+                let nr = r + dr, nc = c + dc;
+                while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && board[nr][nc] === player) {
+                    count++;
+                    nr += dr; nc += dc;
+                }
+                
+                nr = r - dr; nc = c - dc;
+                while (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && board[nr][nc] === player) {
+                    count++;
+                    nr -= dr; nc -= dc;
+                }
+
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+
+        function isBoardFull() {
+            return board.every(row => row.every(cell => cell !== 0));
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
