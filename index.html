@@ -3,40 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2608966971494096"
-     crossorigin="anonymous"></script>
-    <title>심심풀이</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2608966971494096" crossorigin="anonymous"></script>
+    <title>심심풀이 사이트</title>
     <style>
-        /* 다크/라이트 모드 색상 변수 설정 */
+        /* ☀️ 라이트 모드 색상 (기본) */
         :root {
             --bg-color: #f0f2f5;
             --text-color: #1a1a1a;
             --header-bg: #ffffff;
             --card-bg: #ffffff;
             --hover-shadow: rgba(0, 0, 0, 0.15);
+            
+            /* 푸터(하단) 라이트 모드 색상 */
+            --footer-bg: #e9ecef;      /* 밝은 회색 배경 */
+            --footer-border: #dee2e6;  /* 밝은 테두리 */
+            --footer-text: #495057;    /* 진한 텍스트 */
+            --footer-link: #212529;    /* 더 진한 링크 텍스트 */
             --transition-speed: 0.3s;
         }
 
-        /* 다크 모드 색상 (기본값으로 세팅) */
+        /* 🌙 다크 모드 색상 */
         [data-theme="dark"] {
             --bg-color: #18191a;
             --text-color: #e4e6eb;
             --header-bg: #242526;
             --card-bg: #242526;
             --hover-shadow: rgba(255, 255, 255, 0.1);
+            
+            /* 푸터(하단) 다크 모드 색상 */
+            --footer-bg: #111111;      /* 검은색 배경 */
+            --footer-border: #333333;  /* 어두운 테두리 */
+            --footer-text: #888888;    /* 밝은 회색 텍스트 */
+            --footer-link: #cccccc;    /* 밝은 링크 텍스트 */
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: background-color var(--transition-speed), color var(--transition-speed);
+            /* 부드러운 색상 전환 애니메이션 */
+            transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
+            /* 푸터를 항상 화면 맨 아래로 밀어내기 위한 마법의 코드 */
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
 
@@ -76,8 +91,10 @@
             color: var(--bg-color);
         }
 
-        /* 메인 게임 그리드 영역 */
+        /* 메인 콘텐츠 영역 */
         main {
+            flex: 1; /* 남은 공간을 모두 차지하여 푸터를 맨 아래로 밉니다 */
+            width: 100%;
             padding: 30px;
             max-width: 1400px;
             margin: 0 auto;
@@ -85,12 +102,11 @@
 
         .game-grid {
             display: grid;
-            /* 화면 크기에 맞춰 자동으로 열 개수 조절 (최소 너비 200px) */
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
         }
 
-        /* 개별 게임 카드 */
+        /* 게임 카드 */
         .game-card {
             display: flex;
             flex-direction: column;
@@ -102,7 +118,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             transform: translateY(0);
             transition: transform 0.2s, box-shadow 0.2s;
-            aspect-ratio: 4 / 3; /* 카드 비율 고정 */
+            aspect-ratio: 4 / 3;
             position: relative;
         }
 
@@ -111,7 +127,6 @@
             box-shadow: 0 10px 20px var(--hover-shadow);
         }
 
-        /* 썸네일 이미지 */
         .game-card img {
             width: 100%;
             height: 100%;
@@ -123,7 +138,6 @@
             transform: scale(1.05);
         }
 
-        /* 게임 제목 오버레이 */
         .game-info {
             position: absolute;
             bottom: 0;
@@ -135,6 +149,53 @@
             font-weight: bold;
             font-size: 1.1rem;
             text-align: center;
+        }
+
+        /* 💡 수정된 부분: 인라인 스타일 대신 클래스로 푸터 디자인 제어 */
+        .site-footer {
+            background-color: var(--footer-bg);
+            padding: 40px 20px;
+            border-top: 1px solid var(--footer-border);
+            color: var(--footer-text);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-content h3 {
+            margin: 10px 0;
+        }
+
+        .footer-content a {
+            color: var(--footer-link);
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-content hr {
+            border: 0;
+            border-top: 1px solid var(--footer-border);
+            margin: 30px 0;
+        }
+
+        .copyright {
+            margin-top: 40px;
+            font-weight: bold;
+            color: var(--footer-text);
+        }
+
+        .copyright span {
+            font-size: 12px;
+            font-weight: normal;
         }
 
         /* 모바일 대응 */
@@ -159,30 +220,26 @@
     <main>
         <div class="game-grid">
             
-            <!-- 게임 1: 오목 -->
             <a href="오목m.html" class="game-card">
                 <img src="img/오목.png" alt="오목 썸네일">
                 <div class="game-info">AI 오목 대결</div>
             </a>
 
-            <!-- 게임 2: 2048 -->
             <a href="2048.html" class="game-card">
                 <img src="img/2048.png" alt="2048 썸네일">
                 <div class="game-info">2048</div>
             </a>
 
-            <!-- 게임 3: 반응속도 테스트 -->
             <a href="반응속도 테스트.html" class="game-card">
                 <img src="img/반응속도.png" alt="게임 썸네일">
                 <div class="game-info">반응속도 테스트</div>
             </a>
             
-            <!-- 게임 4: 스네이크 -->
             <a href="snake.html" class="game-card">
                 <img src="img/스네이크.png" alt="게임 썸네일">
                 <div class="game-info">스네이크</div>
             </a>
-            <!-- 게임 5: 체스 -->
+            
             <a href="chess.html" class="game-card">
                 <img src="img/chess.jpg" alt="체스 썸네일">
                 <div class="game-info">AI 체스 대결</div>
@@ -208,23 +265,19 @@
         }
     </script>
     
-    <!-- 하단 법적 고지 및 개인정보처리방침 -->
-    <footer style="background-color: #111111; padding: 40px 20px; margin-top: 60px; border-top: 1px solid #333333; color: #888888; font-size: 14px; line-height: 1.7; font-family: sans-serif;">
-        <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <!-- 💡 수정된 부분: 인라인 스타일(style="...")을 완전히 제거했습니다 -->
+    <footer class="site-footer">
+        <div class="footer-content">
             
-            <!-- 링크 글자색을 어두운 배경에 맞게 #cccccc(밝은 회색)으로 변경 -->
-            <h3><a href="Privacy Policy.html" target="_blank" style="color: #cccccc; text-decoration: none;">"개인정보처리방침 (Privacy Policy)"</a></h3>
+            <h3><a href="Privacy Policy.html" target="_blank">"개인정보처리방침 (Privacy Policy)"</a></h3>
             
-            <!-- 가로줄(hr) 색상도 어두운 테마에 맞춰 #444444로 변경 -->
-            <hr style="border: 0; border-top: 1px solid #444444; margin: 30px 0;">
+            <hr>
 
-            <!-- 링크 글자색을 어두운 배경에 맞게 #cccccc로 변경 -->
-            <h3><a href="Copyright & Disclaimer.html" target="_blank" style="color: #cccccc; text-decoration: none;">"저작권 및 면책 조항"</a></h3>
+            <h3><a href="Copyright & Disclaimer.html" target="_blank">"저작권 및 면책 조항"</a></h3>
             
-            <!-- 하단 카피라이트 글자색을 #aaaaaa로 변경 -->
-            <div style="margin-top: 40px; font-weight: bold; color: #aaaaaa;">
+            <div class="copyright">
                 &copy; 2026 AlphaSeong. All rights reserved.<br>
-                <span style="font-size: 12px; font-weight: normal; color: #888888;">Contact: alpharoll65@gmail.com</span>
+                <span>Contact: alpharoll65@gmail.com</span>
             </div>
             
         </div>
