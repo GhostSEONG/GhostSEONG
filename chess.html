@@ -162,21 +162,95 @@
         var game = new Chess();
         var $status = $('#status');
 
-        // AI 턴 처리 함수
+        // 🧠 AI 업그레이드 1: 기물별 가치 점수 설정
+        var pieceValues = {
+            'p': 10,  // 폰
+            'n': 30,  // 나이트
+            'b': 30,  // 비숍
+            'r': 50,  // 룩
+            'q': 90,  // 퀸
+            'k': 900  // 킹
+        };
+
+        // 🧠 AI 업그레이드 2: 현재 체스판의 유불리를 계산하는 함수
+        function evaluateBoard(game) {
+            var boardState = game.board();
+            var totalEvaluation = 0;
+            for (var r = 0; r < 8; r++) {
+                for (var c = 0; c < 8; c++) {
+                    if (boardState[r][c]) {
+                        var piece = boardState[r][c];
+                        var val = pieceValues[piece.type];
+                        // AI(검은색) 기물은 플러스 점수, 플레이어(흰색) 기물은 마이너스 점수로 계산
+                        if (piece.color === 'b') {
+                            totalEvaluation += val;
+                        } else {
+                            totalEvaluation -= val;
+                        }
+                    }
+                }
+            }
+            return totalEvaluation;
+        }
+
+        // 🧠 AI 업그레이드 3: 미니맥스(Minimax) 알고리즘 + 알파-베타 가지치기
+        function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
+            if (depth === 0 || game.game_over()) {
+                return evaluateBoard(game);
+            }
+
+            var moves = game.moves();
+
+            if (isMaximizingPlayer) {
+                var bestVal = -99999;
+                for (var i = 0; i < moves.length; i++) {
+                    game.move(moves[i]);
+                    bestVal = Math.max(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                    game.undo();
+                    alpha = Math.max(alpha, bestVal);
+                    if (beta <= alpha) break; // 불필요한 계산 차단 (속도 향상)
+                }
+                return bestVal;
+            } else {
+                var bestVal = 99999;
+                for (var i = 0; i < moves.length; i++) {
+                    game.move(moves[i]);
+                    bestVal = Math.min(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                    game.undo();
+                    beta = Math.min(beta, bestVal);
+                    if (beta <= alpha) break; // 불필요한 계산 차단 (속도 향상)
+                }
+                return bestVal;
+            }
+        }
+
+        // 🧠 AI 업그레이드 4: 예측을 기반으로 가장 똑똑한 수를 선택하는 턴 처리 함수
         function makeAIMove() {
             var possibleMoves = game.moves();
             if (possibleMoves.length === 0) return;
 
-            var capturingMoves = possibleMoves.filter(move => move.includes('x'));
-            var move = null;
+            var bestMove = null;
+            var bestValue = -99999;
 
-            if (capturingMoves.length > 0) {
-                move = capturingMoves[Math.floor(Math.random() * capturingMoves.length)];
-            } else {
-                move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            // 매번 똑같은 플레이만 하지 않도록 첫 후보수들을 무작위로 섞음
+            possibleMoves.sort(() => Math.random() - 0.5);
+
+            // AI가 자신의 수를 두고, 사용자의 다음 반격까지 미리 시뮬레이션(depth 2) 해봄
+            for (var i = 0; i < possibleMoves.length; i++) {
+                var move = possibleMoves[i];
+                game.move(move);
+                // 다음 턴은 사용자(흰색)이므로 isMaximizingPlayer는 false로 넘김
+                var boardValue = minimax(game, 2, -100000, 100000, false);
+                game.undo();
+
+                if (boardValue > bestValue) {
+                    bestValue = boardValue;
+                    bestMove = move;
+                }
             }
 
-            game.move(move);
+            // 가장 좋은 평가를 받은 최적의 수로 이동
+            game.move(bestMove || possibleMoves[0]);
             board.position(game.fen());
             updateStatus();
         }
@@ -186,7 +260,6 @@
             if (piece.search(/^b/) !== -1) return false;
         }
 
-        // 유저가 기물을 내려놓았을 때
         function onDrop (source, target) {
             var move = game.move({
                 from: source,
@@ -197,6 +270,8 @@
             if (move === null) return 'snapback';
 
             updateStatus();
+            
+            // AI가 생각할 시간을 잠깐(0.3초) 주고 실행
             window.setTimeout(makeAIMove, 300);
         }
 
@@ -222,30 +297,27 @@
             $status.html(statusHTML);
         }
 
-        // 🌟 내 컴퓨터(폴더)에 있는 이미지를 하나하나 매칭하는 사전 🌟
-        // 이미지 폴더 이름이 img가 아니거나 파일명이 다르면 아래 경로를 직접 수정하세요.
+        // 🌟 내 컴퓨터(폴더)에 있는 이미지를 하나하나 매칭하는 사전 (유지)
         var myPieceImages = {
-            'wP': 'img/병.png', // White Pawn (흰색 폰)
-            'wN': 'img/나이트.png', // White Knight (흰색 나이트)
-            'wB': 'img/숍.png', // White Bishop (흰색 비숍)
-            'wR': 'img/캐슬.png', // White Rook (흰색 룩)
-            'wQ': 'img/퀸.png', // White Queen (흰색 퀸)
-            'wK': 'img/킹.png', // White King (흰색 킹)
+            'wP': 'img/병.png', 
+            'wN': 'img/나이트.png', 
+            'wB': 'img/숍.png', 
+            'wR': 'img/캐슬.png', 
+            'wQ': 'img/퀸.png', 
+            'wK': 'img/킹.png', 
 
-            'bP': 'img/병(흑).png', // Black Pawn (검은색 폰)
-            'bN': 'img/나이트(흑).png', // Black Knight (검은색 나이트)
-            'bB': 'img/숍(흑).png', // Black Bishop (검은색 비숍)
-            'bR': 'img/캐슬(흑).png', // Black Rook (검은색 룩)
-            'bQ': 'img/퀸(흑).png', // Black Queen (검은색 퀸)
-            'bK': 'img/킹(흑).png'  // Black King (검은색 킹)
+            'bP': 'img/병(흑).png', 
+            'bN': 'img/나이트(흑).png', 
+            'bB': 'img/숍(흑).png', 
+            'bR': 'img/캐슬(흑).png', 
+            'bQ': 'img/퀸(흑).png', 
+            'bK': 'img/킹(흑).png'  
         };
 
-        // 보드판이 위 사전에서 이미지를 꺼내오도록 연결해주는 함수
         function customPieceTheme(piece) {
             return myPieceImages[piece];
         }
 
-        // 체스판 세팅 (pieceTheme에 내가 만든 커스텀 함수 적용)
         var config = {
             draggable: true,
             position: 'start',
