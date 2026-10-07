@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -118,109 +117,31 @@
     <script>
         var board = null;
         var game = new Chess();
-        var $status = $('#status');
+        var $status =$('#status');
 
-        // AI 턴 처리 함수 (단순히 기물을 잡을 수 있으면 잡고, 아니면 랜덤으로 두는 AI)
+        // AI 턴 처리 함수
         function makeAIMove() {
             var possibleMoves = game.moves();
-
-            // 게임 오버 상태면 종료
             if (possibleMoves.length === 0) return;
 
-            // x(capture)가 포함된 공격 가능한 수가 있는지 확인
             var capturingMoves = possibleMoves.filter(move => move.includes('x'));
             var move = null;
 
-            // 먹을 게 있으면 우선적으로 먹고, 없으면 랜덤하게 둠
             if (capturingMoves.length > 0) {
                 move = capturingMoves[Math.floor(Math.random() * capturingMoves.length)];
             } else {
                 move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
             }
 
-            // AI가 둔 수를 로직에 반영
             game.move(move);
-            // 바뀐 보드판을 화면에 업데이트
             board.position(game.fen());
             updateStatus();
         }
 
-        // 유저가 기물을 집어 들었을 때 (드래그 시작)
         function onDragStart (source, piece, position, orientation) {
-            // 게임이 끝났거나, 내(흰색) 차례가 아니거나, 검은색 기물을 만지려고 하면 차단
             if (game.game_over()) return false;
             if (piece.search(/^b/) !== -1) return false;
         }
 
-        // 유저가 기물을 내려놓았을 때 (드롭)
         function onDrop (source, target) {
-            // 내려놓은 위치로 이동이 유효한지 체크
-            var move = game.move({
-                from: source,
-                to: target,
-                promotion: 'q' // 폰이 끝까지 가면 무조건 퀸으로 승급하도록 기본값 설정
-            });
-
-            // 규칙에 어긋난 이동이면 원래 자리로 튕겨냄
-            if (move === null) return 'snapback';
-
-            updateStatus();
-
-            // 유저 턴이 무사히 끝났으면 0.3초 뒤에 AI 턴 실행
-            window.setTimeout(makeAIMove, 300);
-        }
-
-        // 유저가 둔 기물이 부드럽게 제자리에 안착하도록 업데이트
-        function onSnapEnd () {
-            board.position(game.fen());
-        }
-
-        // 현재 보드 상태와 체크메이트 여부 등을 텍스트로 업데이트
-        function updateStatus () {
-            var statusHTML = '';
-            var moveColor = '흰색(당신)';
-            if (game.turn() === 'b') moveColor = '검은색(AI)';
-
-            if (game.in_checkmate()) {
-                statusHTML = '게임 오버! ' + moveColor + '이(가) 졌습니다.';
-            } else if (game.in_draw()) {
-                statusHTML = '무승부입니다.';
-            } else {
-                statusHTML = moveColor + ' 차례입니다';
-                if (game.in_check()) {
-                    statusHTML += ' <span style="color:#e74c3c;">(체크!)</span>';
-                }
-            }
-            $status.html(statusHTML);
-        }
-
-        // 체스판 UI 설정
-        var config = {
-            draggable: true,
-            position: 'start',
-            onDragStart: onDragStart,
-            onDrop: onDrop,
-            onSnapEnd: onSnapEnd
-        };
-
-        board = Chessboard('myBoard', config);
-        updateStatus();
-
-        // 버튼 이벤트 리스너
-        $('#startBtn').on('click', function() {
-            game.reset();
-            board.start();
-            updateStatus();
-        });
-
-        $('#undoBtn').on('click', function() {
-            // 무르기를 누르면 AI가 둔 것과 내가 둔 것 2수를 뒤로 되돌림
-            game.undo();
-            game.undo();
-            board.position(game.fen());
-            updateStatus();
-        });
-
-    </script>
-</body>
-</html>
+            var
