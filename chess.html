@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 체스 대결</title>
+    
+    <!-- 체스 UI 라이브러리 CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" integrity="sha384-q94+BZtLrkL1/ohOuzBXS4k/bV0BFambg0I0fMpqsM7bR3zGtsQ+324OqtA*d8B" crossorigin="anonymous">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 📱 모바일 스크롤 완벽 방지 */
+        html, body {
+            overflow: hidden; /* 스크롤 바 숨김 및 스크롤 방지 */
+            overscroll-behavior: none; /* iOS 바운스 스크롤 및 당겨서 새로고침 방지 */
+            height: 100%;
+            touch-action: none; /* 브라우저 기본 터치 동작(팬, 줌 등) 완벽 차단 */
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            height: 100vh; /* 화면 크기 고정 */
+            height: -webkit-fill-available; /* 모바일 브라우저 하단바 제외한 실화면 크기 맞춤 */
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* 야무진 체스 네온 로고 스타일 */
+        .chess-logo-wrapper {
+            text-align: center;
+            margin-bottom: 25px;
+            perspective: 1000px;
+        }
+
+        .chess-logo {
+            display: inline-block;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            border: 3px solid #f1c40f;
+            border-radius: 12px;
+            box-shadow: 
+                0 0 20px rgba(241, 196, 15, 0.4), 
+                inset 0 0 15px rgba(241, 196, 15, 0.2);
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: default;
+        }
+
+        .chess-logo:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 
+                0 15px 30px rgba(241, 196, 15, 0.6), 
+                inset 0 0 20px rgba(241, 196, 15, 0.4);
+        }
+
+        .chess-logo .icon {
+            font-size: 3.5rem;
+            color: #f1c40f;
+            vertical-align: middle;
+            margin-right: 15px;
+            display: inline-block;
+            transform: translateY(-5px);
+            text-shadow: 0 0 15px #f1c40f;
+        }
+
+        .status-box {
+            background-color: #34495e;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #f1c40f;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* 체스보드 컨테이너 */
+        #myBoard {
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 4px solid #34495e;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-undo {
+            background-color: #3498db;
+        }
+        .btn-undo:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="chess-logo-wrapper">
+            <div class="chess-logo">
+                <span class="icon">♞</span>MASTER CHESS
+            </div>
+        </div>
+        <div class="status-box" id="status">흰색(당신) 차례입니다</div>
+    </div>
+
+    <!-- 체스판이 그려질 공간 -->
+    <div id="myBoard"></div>
+
+    <div class="controls">
+        <button class="btn-undo" id="undoBtn">무르기 (Undo)</button>
+        <button id="startBtn">새 게임</button>
+    </div>
+
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- 체스 로직 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    
+    <!-- 체스 UI 라이브러리 -->
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+    <script>
+        // 📱 모바일 스크롤 및 더블 탭 확대 완전 방지 
+        document.addEventListener('touchmove', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+
+        var board = null;
+        var game = new Chess();
+        var $status = $('#status');
+
+        // 🧠 AI 업그레이드 1: 기물별 가치 점수 설정
+        var pieceValues = {
+            'p': 10,  
+            'n': 30,  
+            'b': 30,  
+            'r': 50,  
+            'q': 90,  
+            'k': 900  
+        };
+
+        // 🧠 AI 업그레이드 2: 현재 체스판의 유불리를 계산하는 함수
+        function evaluateBoard(game) {
+            var boardState = game.board();
+            var totalEvaluation = 0;
+            for (var r = 0; r < 8; r++) {
+                for (var c = 0; c < 8; c++) {
+                    if (boardState[r][c]) {
+                        var piece = boardState[r][c];
+                        var val = pieceValues[piece.type];
+                        if (piece.color === 'b') {
+                            totalEvaluation += val;
+                        } else {
+                            totalEvaluation -= val;
+                        }
+                    }
+                }
+            }
+            return totalEvaluation;
+        }
+
+        // 🧠 AI 업그레이드 3: 미니맥스 알고리즘 + 알파-베타 가지치기
+        function minimax(game, depth, alpha, beta, isMaximizingPlayer) {
+            if (depth === 0 || game.game_over()) {
+                return evaluateBoard(game);
+            }
+
+            var moves = game.moves();
+
+            if (isMaximizingPlayer) {
+                var bestVal = -99999;
+                for (var i = 0; i < moves.length; i++) {
+                    game.move(moves[i]);
+                    bestVal = Math.max(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                    game.undo();
+                    alpha = Math.max(alpha, bestVal);
+                    if (beta <= alpha) break; 
+                }
+                return bestVal;
+            } else {
+                var bestVal = 99999;
+                for (var i = 0; i < moves.length; i++) {
+                    game.move(moves[i]);
+                    bestVal = Math.min(bestVal, minimax(game, depth - 1, alpha, beta, !isMaximizingPlayer));
+                    game.undo();
+                    beta = Math.min(beta, bestVal);
+                    if (beta <= alpha) break; 
+                }
+                return bestVal;
+            }
+        }
+
+        // 🧠 AI 업그레이드 4: 예측을 기반으로 가장 똑똑한 수를 선택
+        function makeAIMove() {
+            var possibleMoves = game.moves();
+            if (possibleMoves.length === 0) return;
+
+            var bestMove = null;
+            var bestValue = -99999;
+
+            possibleMoves.sort(() => Math.random() - 0.5);
+
+            for (var i = 0; i < possibleMoves.length; i++) {
+                var move = possibleMoves[i];
+                game.move(move);
+                var boardValue = minimax(game, 2, -100000, 100000, false);
+                game.undo();
+
+                if (boardValue > bestValue) {
+                    bestValue = boardValue;
+                    bestMove = move;
+                }
+            }
+
+            game.move(bestMove || possibleMoves[0]);
+            board.position(game.fen());
+            updateStatus();
+        }
+
+        function onDragStart (source, piece, position, orientation) {
+            if (game.game_over()) return false;
+            if (piece.search(/^b/) !== -1) return false;
+        }
+
+        function onDrop (source, target) {
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' 
+            });
+
+            if (move === null) return 'snapback';
+
+            updateStatus();
+            
+            window.setTimeout(makeAIMove, 300);
+        }
+
+        function onSnapEnd () {
+            board.position(game.fen());
+        }
+
+        function updateStatus () {
+            var statusHTML = '';
+            var moveColor = '흰색(당신)';
+            if (game.turn() === 'b') moveColor = '검은색(AI)';
+
+            if (game.in_checkmate()) {
+                statusHTML = '게임 오버! ' + moveColor + '이(가) 졌습니다.';
+            } else if (game.in_draw()) {
+                statusHTML = '무승부입니다.';
+            } else {
+                statusHTML = moveColor + ' 차례입니다';
+                if (game.in_check()) {
+                    statusHTML += ' <span style="color:#e74c3c;">(체크!)</span>';
+                }
+            }
+            $status.html(statusHTML);
+        }
+        
+        var config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        };
+
+        board = Chessboard('myBoard', config);
+        updateStatus();
+
+        $('#startBtn').on('click', function() {
+            game.reset();
+            board.start();
+            updateStatus();
+        });
+
+        $('#undoBtn').on('click', function() {
+            game.undo();
+            game.undo();
+            board.position(game.fen());
+            updateStatus();
+        });
+    </script>
+</body>
+</html>
