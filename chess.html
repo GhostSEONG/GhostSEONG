@@ -289,15 +289,13 @@
             }
             $status.html(statusHTML);
         }
-
-        // 🌟 수정된 부분: 커스텀 이미지를 제거하고, 라이브러리 기본 이미지 링크를 사용하도록 변경했습니다.
-        var config = {
+       var config = {
             draggable: true,
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
             onSnapEnd: onSnapEnd,
-            pieceTheme: 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/img/chesspieces/wikipedia/{piece}.png'
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
 
         board = Chessboard('myBoard', config);
