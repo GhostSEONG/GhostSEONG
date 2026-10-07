@@ -93,9 +93,8 @@
             border: 4px solid #34495e;
             border-radius: 4px;
         }
-        #myBoard img {
-            transform: scale(1.8); /* 1.4배 확대. 숫자를 1.2 ~ 1.8 등으로 조절해 보세요 */
-        }
+
+        /* 기물 이미지를 비정상적으로 키우던 #myBoard img { transform: scale(1.8); } 삭제됨 */
 
         .controls {
             display: flex;
@@ -300,7 +299,7 @@
             $status.html(statusHTML);
         }
 
-        // 🌟 내 컴퓨터(폴더)에 있는 이미지를 하나하나 매칭하는 사전 (유지)
+        // 🌟 내 컴퓨터(폴더)에 있는 이미지를 하나하나 매칭하는 사전
         var myPieceImages = {
             'wP': 'img/병.png', 
             'wN': 'img/나이트.png', 
