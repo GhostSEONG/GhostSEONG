@@ -31,9 +31,47 @@
             margin-bottom: 20px;
         }
 
-        h1 {
-            color: #ecf0f1;
-            margin-bottom: 10px;
+        /* 야무진 체스 네온 로고 스타일 */
+        .chess-logo-wrapper {
+            text-align: center;
+            margin-bottom: 25px;
+            perspective: 1000px;
+        }
+
+        .chess-logo {
+            display: inline-block;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
+            border: 3px solid #f1c40f;
+            border-radius: 12px;
+            box-shadow: 
+                0 0 20px rgba(241, 196, 15, 0.4), 
+                inset 0 0 15px rgba(241, 196, 15, 0.2);
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: default;
+        }
+
+        .chess-logo:hover {
+            transform: translateY(-5px) rotateX(5deg);
+            box-shadow: 
+                0 15px 30px rgba(241, 196, 15, 0.6), 
+                inset 0 0 20px rgba(241, 196, 15, 0.4);
+        }
+
+        .chess-logo .icon {
+            font-size: 3.5rem;
+            color: #f1c40f;
+            vertical-align: middle;
+            margin-right: 15px;
+            display: inline-block;
+            transform: translateY(-5px);
+            text-shadow: 0 0 15px #f1c40f;
         }
 
         .status-box {
@@ -93,7 +131,12 @@
 <body>
 
     <div class="header">
-        <h1>♞ AI 체스 대결</h1>
+        <!-- 네온 로고 적용 -->
+        <div class="chess-logo-wrapper">
+            <div class="chess-logo">
+                <span class="icon">♞</span>MASTER CHESS
+            </div>
+        </div>
         <div class="status-box" id="status">흰색(당신) 차례입니다</div>
     </div>
 
@@ -105,19 +148,19 @@
         <button id="startBtn">새 게임</button>
     </div>
 
-    <!-- JQuery (Chessboard.js의 필수 의존성) -->
+    <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
-    <!-- 체스 로직 라이브러리 (chess.js) -->
+    <!-- 체스 로직 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     
-    <!-- 체스 UI 라이브러리 (chessboard.js) -->
+    <!-- 체스 UI 라이브러리 -->
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 
     <script>
         var board = null;
         var game = new Chess();
-        var $status =$('#status');
+        var $status = $('#status');
 
         // AI 턴 처리 함수
         function makeAIMove() {
@@ -143,5 +186,67 @@
             if (piece.search(/^b/) !== -1) return false;
         }
 
+        // 유저가 기물을 내려놓았을 때
         function onDrop (source, target) {
-            var
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' 
+            });
+
+            if (move === null) return 'snapback';
+
+            updateStatus();
+            window.setTimeout(makeAIMove, 300);
+        }
+
+        function onSnapEnd () {
+            board.position(game.fen());
+        }
+
+        function updateStatus () {
+            var statusHTML = '';
+            var moveColor = '흰색(당신)';
+            if (game.turn() === 'b') moveColor = '검은색(AI)';
+
+            if (game.in_checkmate()) {
+                statusHTML = '게임 오버! ' + moveColor + '이(가) 졌습니다.';
+            } else if (game.in_draw()) {
+                statusHTML = '무승부입니다.';
+            } else {
+                statusHTML = moveColor + ' 차례입니다';
+                if (game.in_check()) {
+                    statusHTML += ' <span style="color:#e74c3c;">(체크!)</span>';
+                }
+            }
+            $status.html(statusHTML);
+        }
+
+        // 🌟 엑스박스(이미지 깨짐) 완벽 해결: 공식 서버 이미지 경로 연결 🌟
+        var config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        };
+
+        board = Chessboard('myBoard', config);
+        updateStatus();
+
+        $('#startBtn').on('click', function() {
+            game.reset();
+            board.start();
+            updateStatus();
+        });
+
+        $('#undoBtn').on('click', function() {
+            game.undo();
+            game.undo();
+            board.position(game.fen());
+            updateStatus();
+        });
+    </script>
+</body>
+</html>
